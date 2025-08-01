@@ -13,7 +13,8 @@ with app.setup:
 
 @app.cell(hide_code=True)
 def _():
-    mo.md("""
+    mo.md(
+        """
     ## Agenda
 
     <ul>
@@ -24,7 +25,8 @@ def _():
       <li><span style="font-size:1.25em;"><b>Ray on K8s using KubeRay</b></span></li>
       <li><span style="font-size:1.25em;"><b>Anyscale Console</b></span></li>
     </ul>
-    """)
+    """
+    )
     return
 
 
@@ -33,7 +35,7 @@ def _():
 
     mo.vstack([mo.md("## AI Demand"),
     mo.hstack([
-        mo.image("/home/ray/default/marimo_notebooks/resources/ai-workloads.png", height=500, width=700),
+        mo.image("marimo_notebooks/resources/ai-workloads.png", height=500, width=700),
         mo.md(
             "<div style='height:80px;'></div>"
             "- **AI** is no longer niche; it’s the core driver of **compute** and **infrastructure demand**.\n"
@@ -70,7 +72,6 @@ def _():
     - Post training is where enterprises realise value, with fine-tuning, RLHF, etc.
 
     [Source: Anyscale Infra Summit 2025](https://www.youtube.com/watch?v=cIPsdmiQAog)
-
     """
     )
     return
@@ -82,7 +83,7 @@ def _():
         f"""
     ## Building Scalable and Performant Solutions
 
-    {mo.image("/home/ray/default/marimo_notebooks/resources/ray.png")}
+    {mo.image("marimo_notebooks/resources/ray.png")}
 
     ## What is RAY ?
     Ray is an open-source framework to build and scale ML and Python applications. It consists of easy to use APIs that allows the developer to run their workloads in heterogenous compute (CPUs and GPUs), supports any data type and model architecture, scaling to thousands of GPUs while keeping a stable utilisation across all your compute.
@@ -90,7 +91,7 @@ def _():
     > Anyscale is a commercial provider that offers a managed platform built on top of Ray with further optimisations and new robust features such as [Ray Turbo](https://www.anyscale.com/product/platform/rayturbo) and others. It abstracts away the operational complexity of deploying and managing Ray clusters, enabling teams to focus on developing scalable applications without worrying about infrastructure.
 
 
-    {mo.image("/home/ray/default/marimo_notebooks/resources/anyscale_features.png")}
+    {mo.image("marimo_notebooks/resources/anyscale_features.png")}
     """
     )
     return
@@ -101,7 +102,7 @@ def _():
     mo.md(
         rf"""
     ## Ray Ecosystem 
-    {mo.image("/home/ray/default/marimo_notebooks/resources/ray-libraries.png",height=400, width=550)}
+    {mo.image("marimo_notebooks/resources/ray-libraries.png",height=400, width=550)}
 
     **Ray Core** is the low-level API that provides the building blocks for distributed computing in Python. It enables developers to define scalable classes and functions for parallel and fault-tolerant workloads.
 
@@ -129,8 +130,8 @@ def _():
     ## Scaling Python Applications
 
     {mo.hstack([
-        mo.image("/home/ray/default/marimo_notebooks/resources/concurrent-burgers.png", height=400, width=800),
-        mo.image("/home/ray/default/marimo_notebooks/resources/parallel-burgers-01.png", height=400, width=800),
+        mo.image("marimo_notebooks/resources/concurrent-burgers.png", height=400, width=800),
+        mo.image("marimo_notebooks/resources/parallel-burgers-01.png", height=400, width=800),
     ])}
     """
     )
@@ -185,7 +186,7 @@ def _(ThreadPoolExecutor, as_completed, inputs, sum_of_squares, time):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(
         r"""
@@ -239,7 +240,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""#### NOTE: Overall we notice that going from sequential tasks processing to parallel gives us here about 3X speedups.""")
     return
@@ -277,43 +278,21 @@ def _(inputs, ray, time):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(
         r"""
     ## Ray and PyTorch
 
-    In this notebook, we will use `Ray` and `PyTorch` to build and train models for image classification on the CIFAR-10 and MNIST datasets.
+    In this notebook, we will use `Ray` and `PyTorch` to build and train models for image classification on the CIFAR-10 dataset.
 
-    1. Train and evaluate a simple CNN model using native PyTorch on CPU/GPU.
+    1. Load the `ResNet` architecture, freeze all layers except the final classification layer, and train only the last layer and evaluate the final model.
 
-    2. Extend the same architecture to use `Ray Train` for distributed training.
+    2. Tune the model by experimenting with different hyperparameters.
 
-    3. Load the `ResNet` architecture and perform batch inference.
-
-    4. Apply the following model training configurations for ResNet:
-
-           4.1. Freeze all layers except the final classification layer, and train only the last layer.
-
-           4.2. Freeze selected layers (e.g., last few layers), and fine-tune the model.
-
-           4.3. Train the entire model from scratch without using any pretrained weights.
-
-           4.4. Modify the input layer of `ResNet` to accept grayscale (1-channel) images, and train the model on MNIST.
-
-    5. Train and evaluate the ResNet model using different training and data-loading configurations:
-
-           5.1. Using PyTorch `DataLoader` with `Ray Train`
-
-           5.2. Using `Ray Data` with `Ray Train`
+    3. Serve the Model using Ray Serve and FastAPI.
     """
     )
-    return
-
-
-@app.cell
-def _():
-    mo.md(r"""### Train and evaluate a simple CNN model using native PyTorch on CPU/GPU""")
     return
 
 
@@ -327,123 +306,27 @@ def _():
     from torch.optim import SGD
     from torchmetrics import Accuracy
 
-    return Accuracy, CIFAR10, DataLoader, SGD, Subset, ToTensor, nn, torch
+    return Accuracy, CIFAR10, SGD, Subset, ToTensor, nn, torch
 
 
 @app.cell
-def _(nn):
-    class SimpleCNN(nn.Module):
-        def __init__(self, input_dim=3, hidden_dim=64, output_dim=10):
-            super().__init__()
-
-            self.conv_block1 = nn.Sequential(
-            nn.Conv2d(input_dim, hidden_dim, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(hidden_dim),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2)  
-            )
-
-            self.conv_block2 = nn.Sequential(
-                nn.Conv2d(hidden_dim, hidden_dim * 2, kernel_size=3, padding=1),
-                nn.BatchNorm2d(hidden_dim * 2),
-                nn.ReLU(),
-                nn.MaxPool2d(kernel_size=2), 
-                nn.Dropout(0.25)
-            )
-
-            self.conv_block3 = nn.Sequential(
-                nn.Conv2d(hidden_dim * 2, hidden_dim * 4, kernel_size=3, padding=1),
-                nn.BatchNorm2d(hidden_dim * 4),
-                nn.ReLU(),
-                nn.AdaptiveAvgPool2d((1, 1)), 
-                nn.Flatten()
-            )
-
-            self.classifier = nn.Sequential(
-                nn.Dropout(0.5),
-                nn.Linear(hidden_dim * 4, output_dim)
-            )
-
-        def forward(self, x):
-            x = self.conv_block1(x)
-            x = self.conv_block2(x)
-            x = self.conv_block3(x)
-            return self.classifier(x)
-
-
-    return (SimpleCNN,)
-
-
-@app.cell
-def _(Accuracy, CIFAR10, DataLoader, Subset, ToTensor):
+def _(CIFAR10, Subset, ToTensor):
     train_data = CIFAR10(root="marimo_notebooks/data",download=True,train=True,transform=ToTensor())
     valid_data= CIFAR10(root="marimo_notebooks/data",download=True,train=False,transform=ToTensor())
     train_sub = Subset(train_data,indices=range(500))
     valid_sub= Subset(valid_data,indices=range(500))
-    train_dataloader = DataLoader(train_sub, batch_size=50,shuffle=True)
-    valid_dataloader = DataLoader(valid_sub, batch_size=50,shuffle=False)
+    return
 
 
-    def pytorch_simple_train(epochs, model,dataloader,device,optimiser,loss_fn):
-        model.to(device)
-        model.train()
-        train_loss =0.0 
-        train_acc =0.0 
-        batch_train_loss = []
-        batch_train_acc= []
-        accuracy = Accuracy(task="multiclass",num_classes=10).to(device)
-        for epoch in range(epochs):
-            for idx, (x,y) in enumerate(dataloader):
-                x_device, y_device = x.to(device),y.to(device)
-                y_logits = model(x_device)
-                y_labels = y_logits.argmax(dim=1)
-                loss = loss_fn(y_logits,y_device)
-                acc = accuracy(y_labels,y_device)
-                train_loss +=loss.item()
-                train_acc +=acc.item()
-                optimiser.zero_grad()
-                loss.backward()
-                optimiser.step()
-            train_loss /= len(dataloader)
-            train_acc/= len(dataloader)
-            batch_train_loss.append(train_loss)
-            batch_train_acc.append(train_acc)
-        return  batch_train_loss, batch_train_acc
-
-    return pytorch_simple_train, train_dataloader
-
-
-@app.cell
-def _(SGD, SimpleCNN, nn, pytorch_simple_train, train_dataloader):
-    simple_model = SimpleCNN(input_dim=3,hidden_dim=64,output_dim=10)
-    loss_fn = nn.CrossEntropyLoss()
-    optimiser = SGD(simple_model.parameters(),lr=0.1)
-
-
-    train_loss, train_acc= pytorch_simple_train(epochs=10,model=simple_model,dataloader=train_dataloader,device="cpu",loss_fn=loss_fn,optimiser=optimiser)
-
-    return train_acc, train_loss
-
-
-@app.cell
-def _(train_acc, train_loss):
-    import matplotlib.pyplot as plt
-
-    fig, axes = plt.subplots(1,2,figsize=(15,5))
-    ax = axes.flatten()
-    ax[0].plot(train_loss,"b--")
-    ax[0].set_title("Training Loss")
-    ax[1].plot(train_acc,"b--")
-    ax[1].set_title("Training Accuracy")
-    plt.tight_layout()
-    plt.show()
-
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""### Train Pytorch Model using Ray Train (WIP)""")
     return
 
 
 @app.cell
 def _():
-    mo.md(r"""### Simple Pytorch Model using Ray Train (WIP)""")
+    from ray.train.torch import TorchTrainer
     return
 
 
