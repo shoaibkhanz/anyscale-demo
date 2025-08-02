@@ -1,0 +1,27 @@
+name: sentiment-service
+
+image_uri:  anyscale/image/test-anyscale-image:1
+
+compute_config:
+  head_node:
+    instance_type: m5.2xlarge
+  worker_nodes:
+    - instance_type: g4dn.2xlarge
+      min_nodes: 2
+      max_nodes: 3
+      market_type: ON_DEMAND
+  min_resources:
+    CPU: 1
+    GPU: 1
+  max_resources:
+    CPU: 2
+    GPU: 2
+
+working_dir: .
+
+# When empty, this uses the default Anyscale Cloud in your organization.
+cloud:
+
+# Speciy the Ray Serve app to deploy.
+applications:
+- import_path: demo_scripts.ray.ray_serve:sentiment_model
